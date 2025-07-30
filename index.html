@@ -1,549 +1,389 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quản Lý Tài Sản Bệnh Viện</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js">
-let phongBanList = [
-  "Kho", "Khoa khám bệnh", "Khoa Nội", "Khoa Ngoại", "Khoa Sản", "Khoa Nhi",
-  "Khoa cấp cứu", "Khoa dân số", "Khoa dược", "Khoa kiểm soát bệnh tật",
-  "Khoa an toàn thực phẩm", "Khoa y học cổ truyền", "Khoa Xét nghiệm",
-  "Khoa y tế công cộng", "Phòng điều dưỡng", "Phòng Hành chính",
-  "Phòng kế toán", "Phòng P.giám đốc BS.Hạnh", "Phòng P.giám đốc BS.Hoằng",
-  "Phòng Giám đốc", "Phòng KHNV"
-];
-
-function updatePhongBanDropdowns() {
-  const selects = ['phongBan', 'filterPhongBan', 'xuat_khoXuat', 'xuat_khoNhap', 'removePhongBanSelect'];
-  selects.forEach(id => {
-    const select = document.getElementById(id);
-    if (select) {
-      select.innerHTML = `<option value="">-- Chọn Khoa phòng --</option>`;
-      phongBanList.forEach(pb => {
-        const opt = document.createElement("option");
-        opt.value = pb;
-        opt.textContent = pb;
-        select.appendChild(opt);
-      });
-    }
-  });
-}
-
-function addPhongBan() {
-  const newPB = document.getElementById("newPhongBan").value.trim();
-  if (newPB === "") {
-    alert("Vui lòng nhập tên khoa phòng.");
-    return;
-  }
-  if (phongBanList.includes(newPB)) {
-    alert("Khoa phòng đã tồn tại.");
-    return;
-  }
-  phongBanList.push(newPB);
-  updatePhongBanDropdowns();
-  document.getElementById("newPhongBan").value = "";
-}
-
-function removePhongBan() {
-  const selectedPB = document.getElementById("removePhongBanSelect").value;
-  if (!selectedPB) {
-    alert("Chọn khoa phòng cần xóa.");
-    return;
-  }
-  phongBanList = phongBanList.filter(pb => pb !== selectedPB);
-  updatePhongBanDropdowns();
-}
-
-// Gọi sau khi tải trang
-updatePhongBanDropdowns();
-
-</script>
+  <meta charset="UTF-8">
+  <title>Quản lý tài sản</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { padding: 20px; }
-    h1 { text-align: center; margin-bottom: 30px; color: #007bff; }
-    thead { background-color: #007bff; color: white; }
-    .table { border: 2px solid #007bff; margin: auto; text-align: center; }
-    .table th, .table td { border: 1px solid #007bff; vertical-align: middle; text-align: center; }
-    .table-hover tbody tr:hover { background-color: #cce5ff; }
-    .table thead th { background-color: #007bff !important; color: white !important; }
+    body { background-color: #f0f8ff; padding: 20px; }
+    h4.section-title { background-color: #007bff; color: white; padding: 10px; border-radius: 5px; margin-top: 30px; }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>QUẢN LÝ TÀI SẢN TRUNG TÂM Y TẾ LẤP VÒ</h1>
-<h3 class="mt-4 text-success">Quản lý Khoa phòng</h3>
-<div class="row g-2 mb-4">
-  <div class="col-md-4">
-    <input type="text" id="newPhongBan" class="form-control" placeholder="Nhập tên khoa phòng mới" />
+  <h2 class="text-center text-primary mb-4">HỆ THỐNG QUẢN LÝ TÀI SẢN</h2>
+
+  <!-- KHOA PHÒNG -->
+  <h4 class="section-title">Quản lý Khoa phòng</h4>
+  <div class="row mb-3">
+    <div class="col-md-4"><input id="tenKhoaPhong" class="form-control" placeholder="Nhập tên khoa phòng mới" /></div>
+    <div class="col-md-4"><button id="btnThemKhoa" class="btn btn-primary w-100">Thêm Khoa phòng</button></div>
+    <div class="col-md-4">
+      <select id="xoaPhongSelect" class="form-select"></select>
+      <button id="btnXoaKhoa" class="btn btn-danger mt-2 w-100">Xóa Khoa phòng</button>
+    </div>
   </div>
-  <div class="col-md-2 d-grid">
-    <button class="btn btn-primary" onclick="addPhongBan()">Thêm Khoa phòng</button>
+
+  <!-- NHẬP TÀI SẢN -->
+  <h4 class="section-title">Nhập tài sản vào kho</h4>
+  <div class="row mb-3">
+    <div class="col-md-2"><input id="tenTaiSan" class="form-control" placeholder="Tên tài sản"></div>
+    <div class="col-md-2"><input id="maTaiSan" class="form-control" placeholder="Mã tài sản"></div>
+    <div class="col-md-2"><input id="soLuong" type="number" class="form-control" placeholder="Số lượng"></div>
+    <div class="col-md-2"><input id="donGia" type="number" class="form-control" placeholder="Đơn giá"></div>
+    <div class="col-md-2"><input id="thanhTien" type="number" class="form-control" placeholder="Thành tiền" readonly></div>
+    <div class="col-md-2"><input id="ngayNhap" type="date" class="form-control"></div>
   </div>
-  <div class="col-md-4">
-    <select class="form-select" id="removePhongBanSelect">
-      <option value="">-- Chọn khoa phòng để xóa --</option>
+  <div class="row mb-3">
+    <div class="col-md-4"><select id="khoaNhap" class="form-select"><option disabled selected>-- Chọn Khoa phòng --</option></select></div>
+    <div class="col-md-4"><button id="btnThemTaiSan" class="btn btn-success w-100">Thêm Tài Sản</button></div>
+  </div>
+
+ <!-- TÌM KIẾM & LỌC KHOA NHẬP -->
+<div class="row mb-3">
+  <div class="col-md-6">
+    <input type="text" id="timTenTaiSan" class="form-control" placeholder="Tìm kiếm tài sản...">
+  </div>
+  <div class="col-md-6">
+    <select id="locKhoaNhap" class="form-select">
+      <option value="">-- Chọn Khoa phòng --</option>
     </select>
   </div>
-  <div class="col-md-2 d-grid">
-    <button class="btn btn-danger" onclick="removePhongBan()">Xóa Khoa phòng</button>
-  </div>
-</div>
+</div> 
 
 
-  <!-- Form nhập tài sản -->
-  <form id="assetForm" class="row g-3 mb-4">
-    <input type="hidden" id="editIndex" />
-    <div class="col-md-2"><input type="text" class="form-control" id="tenTaiSan" placeholder="Tên tài sản" required /></div>
-    <div class="col-md-2"><input type="text" class="form-control" id="maTaiSan" placeholder="Mã tài sản" required /></div>
-    <div class="col-md-2"><input type="number" class="form-control" id="soLuong" placeholder="Số lượng" required /></div>
-    <div class="col-md-2"><input type="number" class="form-control" id="dongia" placeholder="Đơn giá" required /></div>
-    <div class="col-md-2"><input type="number" class="form-control" id="thanhtien" placeholder="Thành tiền" readonly /></div>
-    <div class="col-md-2"><input type="date" class="form-control" id="ngaynhap" required /></div>
-    <div class="col-md-2">
-      <select class="form-select" id="phongBan" required>
-        <option value="">-- Chọn Khoa phòng --</option>
-        <option value="Kho">Kho</option>
-        <option value="Khoa khám bệnh">Khoa khám bệnh</option>
-        <option value="Khoa Nội">Khoa Nội</option>
-        <option value="Khoa Ngoại">Khoa Ngoại</option>
-        <option value="Khoa Sản">Khoa Sản</option>
-        <option value="Khoa Nhi">Khoa Nhi</option>
-        <option value="Khoa cấp cứu">Khoa cấp cứu</option>
-         <option value="Khoa dân số">Khoa dân số</option>
-          <option value="Khoa dược">Khoa dược</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-         <option value="Khoa an toàn thực phẩm">Khoa an toàn thực phẩm</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-        <option value="Khoa y học cổ truyền">Khoa y học cổ truyền</option>
-        <option value="Khoa Xét nghiệm">Khoa Xét nghiệm</option>
-         <option value="Khoa y tế công cộng">Khoa y tế công cộng</option>
-              <option value="Phòng điều dưỡng">Phòng điều dưỡng</option>
-        <option value="Phòng Hành chính">Phòng Hành chính</option>
-         <option value="Phòng kế toán">Phòng kế toán</option>
-          <option value="Phòng P.giám đốc BS.Hạnh">Phòng P.giám đốc BS.Hạnh</option>
-        <option value="Phòng P.giám đốc BS.Hoằng">Phòng P.giám đốc BS.Hoằng</option>
-        <option value="Phòng Giám đốc">Phòng Giám đốc</option>
-           <option value="Phòng KHNV">Phòng KHNV</option>
-      </select>
-    </div>
-    <div class="col-md-3 d-grid">
-      <button type="submit" class="btn btn-primary" id="submitBtn">Thêm Tài Sản</button>
-    </div>
-  </form>
 
-  <!-- Tìm kiếm và lọc -->
+  <!-- LỌC NGÀY & XUẤT EXCEL NHẬP -->
   <div class="row mb-3">
-    <div class="col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm tài sản..." /></div>
-    <div class="col-md-6">
-      <select class="form-select" id="filterPhongBan">
-        <option value="">-- Lọc theo Khoa phòng --</option>
-        <option value="Kho">Kho</option>
-         <option value="Khoa khám bệnh">Khoa khám bệnh</option>
-        <option value="Khoa Nội">Khoa Nội</option>
-        <option value="Khoa Ngoại">Khoa Ngoại</option>
-        <option value="Khoa Sản">Khoa Sản</option>
-        <option value="Khoa Nhi">Khoa Nhi</option>
-         <option value="Khoa cấp cứu">Khoa cấp cứu</option>
-           <option value="Khoa dân số">Khoa dân số</option>
-          <option value="Khoa dược">Khoa dược</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-         <option value="Khoa an toàn thực phẩm">Khoa an toàn thực phẩm</option>
-          <option value="Khoa y học cổ truyền">Khoa y học cổ truyền</option>
-        <option value="Khoa Xét nghiệm">Khoa Xét nghiệm</option>
-         <option value="Khoa y tế công cộng">Khoa y tế công cộng</option>
-              <option value="Phòng điều dưỡng">Phòng điều dưỡng</option>
-        <option value="Phòng Hành chính">Phòng Hành chính</option>
-         <option value="Phòng kế toán">Phòng kế toán</option>
-          <option value="Phòng P.giám đốc BS.Hạnh">Phòng P.giám đốc BS.Hạnh</option>
-        <option value="Phòng P.giám đốc BS.Hoằng">Phòng P.giám đốc BS.Hoằng</option>
-        <option value="Phòng Giám đốc">Phòng Giám đốc</option>
-           <option value="Phòng KHNV">Phòng KHNV</option>
-        
-      </select>
-    </div>
+    <div class="col-md-3"><input type="date" id="tuNgayNhap" class="form-control"></div>
+    <div class="col-md-3"><input type="date" id="denNgayNhap" class="form-control"></div>
+    <div class="col-md-3"><button class="btn btn-outline-success mt-1" onclick="locVaXuatExcelNhap()">Lọc & Xuất Excel Kho Nhập</button></div>
   </div>
-  
-  <div class="mb-3 text-end">
-      <button class="btn btn-success" onclick="exportToExcel()">Phiếu nhập kho</button>
-    </div>
- <h3 class="mt-5 text-primary">Kho nhập</h3>
-  <!-- Bảng tài sản -->
-  <table class="table table-bordered table-hover">
-    <thead>
-      <tr>
-        <th>STT</th>
-        <th>Tên tài sản</th>
-        <th>Mã</th>
-        <th>Số lượng</th>
-        <th>Đơn giá</th>
-        <th>Thành tiền</th>
-        <th>Ngày nhập</th>
-        <th>Khoa phòng</th>
-        <th>Hành động</th>
-      </tr>
-    </thead>
-    <tbody id="assetTableBody"></tbody>
-  </table>
-  
  
 
-  <!-- Phiếu Xuất Kho -->
-  <h3 class="mt-5 text-primary">Kho xuất</h3>
-  <form id="exportForm" class="row g-3 mb-4">
-    <div class="col-md-2"><input type="text" class="form-control" id="xuat_maTaiSan" placeholder="Mã tài sản" required /></div>
-    <div class="col-md-2"><input type="number" class="form-control" id="xuat_soLuong" placeholder="Số lượng xuất" required /></div>
-    <div class="col-md-2"><input type="date" class="form-control" id="xuat_ngay" required /></div>
-    <div class="col-md-3">
-      <select class="form-select" id="xuat_khoXuat" required>
-        <option value="">-- Chọn kho xuất --</option>
-        <option value="Kho">Kho</option>
-        <option value="Khoa khám bệnh">Khoa khám bệnh</option>
-        <option value="Khoa Nội">Khoa Nội</option>
-        <option value="Khoa Ngoại">Khoa Ngoại</option>
-        <option value="Khoa Sản">Khoa Sản</option>
-         <option value="Khoa Nhi">Khoa Nhi</option>
-          <option value="Khoa cấp cứu">Khoa cấp cứu</option>
-            <option value="Khoa dân số">Khoa dân số</option>
-          <option value="Khoa dược">Khoa dược</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-         <option value="Khoa an toàn thực phẩm">Khoa an toàn thực phẩm</option>
-           <option value="Khoa y học cổ truyền">Khoa y học cổ truyền</option>
-        <option value="Khoa Xét nghiệm">Khoa Xét nghiệm</option>
-         <option value="Khoa y tế công cộng">Khoa y tế công cộng</option>
-              <option value="Phòng điều dưỡng">Phòng điều dưỡng</option>
-        <option value="Phòng Hành chính">Phòng Hành chính</option>
-         <option value="Phòng kế toán">Phòng kế toán</option>
-          <option value="Phòng P.giám đốc BS.Hạnh">Phòng P.giám đốc BS.Hạnh</option>
-        <option value="Phòng P.giám đốc BS.Hoằng">Phòng P.giám đốc BS.Hoằng</option>
-        <option value="Phòng Giám đốc">Phòng Giám đốc</option>
-           <option value="Phòng KHNV">Phòng KHNV</option>
-          
-      </select>
-    </div>
-    <div class="col-md-3">
-      <select class="form-select" id="xuat_khoNhap" required>
-        <option value="">-- Chọn kho nhập --</option>
-        <option value="Kho">Kho</option>
-           <option value="Khoa khám bệnh">Khoa khám bệnh</option>
-        <option value="Khoa Nội">Khoa Nội</option>
-        <option value="Khoa Ngoại">Khoa Ngoại</option>
-        <option value="Khoa Sản">Khoa Sản</option>
-         <option value="Khoa Nhi">Khoa Nhi</option>
-          <option value="Khoa cấp cứu">Khoa cấp cứu</option>
-            <option value="Khoa dân số">Khoa dân số</option>
-          <option value="Khoa dược">Khoa dược</option>
-       
-          <option value="Khoa kiểm soát bệnh tật">Khoa kiểm soát bệnh tật</option>
-         <option value="Khoa an toàn thực phẩm">Khoa an toàn thực phẩm</option>
-           <option value="Khoa y học cổ truyền">Khoa y học cổ truyền</option>
-             <option value="Khoa y tế công cộng">Khoa y tế công cộng</option>
-              <option value="Phòng điều dưỡng">Phòng điều dưỡng</option>
-        <option value="Khoa Xét nghiệm">Khoa Xét nghiệm</option>
-        <option value="Phòng Hành chính">Phòng Hành chính</option>
-         <option value="Phòng kế toán">Phòng kế toán</option>
-          <option value="Phòng P.giám đốc BS.Hạnh">Phòng P.giám đốc BS.Hạnh</option>
-        <option value="Phòng P.giám đốc BS.Hoằng">Phòng P.giám đốc BS.Hoằng</option>
-        <option value="Phòng Giám đốc">Phòng Giám đốc</option>
-           <option value="Phòng KHNV">Phòng KHNV</option>
-      
-      </select>
-    </div>
-    <div class="col-md-2 d-grid ">
-      <button type="submit" class="btn btn-danger">Xuất kho</button>
-    </div>
-  </form>
 
-
-  <!-- Bảng xuất kho -->
   <table class="table table-bordered table-hover">
-    <thead>
-      <tr>
-        <th>STT</th>
-        <th>Mã tài sản</th>
-        <th>Số lượng xuất</th>
-        <th>Ngày xuất</th>
-        <th>Kho xuất</th>
-        <th>Kho nhập</th>
-        <th>Hành động</th>
-      </tr>
-    </thead>
-    <tbody id="exportTableBody"></tbody>
+    <thead><tr><th>STT</th><th>Tên</th><th>Mã</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ngày</th><th>Khoa</th><th>Hành động</th></tr></thead>
+    <tbody id="tableKhoNhap"></tbody>
   </table>
-  
-  
- <div class="mt-4 d-flex justify-content-end">
-  <button onclick="exportPhieuXuatKhoToExcel()" class="btn btn-success">Phiếu xuất Kho</button>
-</div>
-</div>
 
-<script>
-let assets = [];
-let exportList = [];
+  <!-- XUẤT KHO -->
+  <h4 class="section-title">Xuất tài sản khỏi kho</h4>
+  <div class="row mb-3">
+    <div class="col-md-2"><input id="maXuat" class="form-control" placeholder="Mã tài sản"></div>
+    <div class="col-md-2"><input id="slXuat" type="number" class="form-control" placeholder="Số lượng xuất"></div>
+    <div class="col-md-2"><input id="ngayXuat" type="date" class="form-control"></div>
+    <div class="col-md-3"><select id="khoXuat" class="form-select"></select></div>
+    <div class="col-md-3"><select id="khoNhap" class="form-select"></select></div>
+  </div>
+  <div class="row mb-3"><div class="col-md-3"><button id="btnXuatKho" class="btn btn-danger w-100">Xuất kho</button></div></div>
 
-function formatDate(dateStr) {
-  const [y, m, d] = dateStr.split("-");
+  <!-- LỌC NGÀY & XUẤT EXCEL XUẤT -->
+  <div class="row mb-3">
+    <div class="col-md-3"><input type="date" id="tuNgayXuat" class="form-control"></div>
+    <div class="col-md-3"><input type="date" id="denNgayXuat" class="form-control"></div>
+    <div class="col-md-3"><button class="btn btn-outline-success mt-1" onclick="locVaXuatExcelXuat()">Lọc & Xuất Excel Kho Xuất</button></div>
+  </div>
+
+  <table class="table table-bordered table-hover">
+    <thead><tr><th>STT</th><th>Mã</th><th>SL Xuất</th><th>Ngày</th><th>Kho xuất</th><th>Kho nhập</th><th>Hành động</th></tr></thead>
+    <tbody id="tableXuatKho"></tbody>
+  </table>
+<script type="module">
+
+function dinhDangNgay(ngayISO) {
+  if (!ngayISO) return "";
+  const [y, m, d] = ngayISO.split("-");
   return `${d}-${m}-${y}`;
 }
 
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import {
+    getDatabase, ref, set, push, onValue, remove, update, get, child
+  } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyAM8oA5Ix4go4aEQDG_y6O8CSf1MmXhv0A",
+    authDomain: "quanlytaisan-e63af.firebaseapp.com",
+    databaseURL: "https://quanlytaisan-e63af-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "quanlytaisan-e63af",
+    storageBucket: "quanlytaisan-e63af.appspot.com",
+    messagingSenderId: "383475000578",
+    appId: "1:383475000578:web:3e0689512fa3f5f50f8e1b"
+  };
 
- function exportToExcel() {
-      const filteredAssets = assets.filter(a =>
-        (a.ten.toLowerCase().includes(searchInput.value.toLowerCase()) || a.ma.toLowerCase().includes(searchInput.value.toLowerCase())) &&
-        (filterPhongBan.value === '' || a.pb === filterPhongBan.value)
-      );
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-      const wsData = [
-        ['STT', 'Tên tài sản', 'Mã tài sản', 'Số lượng', 'Đơn giá', 'Thành tiền', 'Ngày nhập', 'Phòng ban'],
-        ...filteredAssets.map((a, i) => [i + 1, a.ten, a.ma, a.sl, a.dg, a.tt, formatDate(a.ngaynhap), a.pb])
-      ];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      XLSX.utils.book_append_sheet(wb, ws, "TaiSan");
-      XLSX.writeFile(wb, "Danh_sach_tai_san.xlsx");
-    }
-	
-document.getElementById('soLuong').addEventListener('input', updateThanhTien);
-document.getElementById('dongia').addEventListener('input', updateThanhTien);
-
-function updateThanhTien() {
-  const sl = Number(document.getElementById('soLuong').value);
-  const dg = Number(document.getElementById('dongia').value);
-  document.getElementById('thanhtien').value = sl * dg;
-}
-
-// Form nhập tài sản
-document.getElementById("assetForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const ten = document.getElementById('tenTaiSan').value;
-  const ma = document.getElementById('maTaiSan').value;
-  const sl = Number(document.getElementById('soLuong').value);
-  const dg = Number(document.getElementById('dongia').value);
-  const tt = sl * dg;
-  const ngaynhap = document.getElementById('ngaynhap').value;
-  const pb = document.getElementById('phongBan').value;
-  const editIndex = document.getElementById('editIndex').value;
-
-  if (editIndex === '') {
-    assets.push({ ten, ma, sl, dg, tt, ngaynhap, pb });
-  } else {
-    assets[editIndex] = { ten, ma, sl, dg, tt, ngaynhap, pb };
-    document.getElementById('submitBtn').textContent = 'Thêm Tài Sản';
-    document.getElementById('editIndex').value = '';
-  }
-
-  renderTable();
-  this.reset();
-  document.getElementById('thanhtien').value = '';
-});
-
-function renderTable() {
-  const body = document.getElementById('assetTableBody');
-  const keyword = document.getElementById('searchInput').value.toLowerCase();
-  const phongFilter = document.getElementById('filterPhongBan').value;
-  body.innerHTML = '';
-
-  assets.filter(a =>
-    (a.ten.toLowerCase().includes(keyword) || a.ma.toLowerCase().includes(keyword)) &&
-    (phongFilter === '' || a.pb === phongFilter)
-  ).forEach((a, i) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${a.ten}</td>
-      <td>${a.ma}</td>
-      <td>${a.sl}</td>
-      <td>${a.dg}</td>
-      <td>${a.tt}</td>
-      <td>${formatDate(a.ngaynhap)}</td>
-      <td>${a.pb}</td>
-      <td>
-        <button onclick="editAsset(${i})" class="btn btn-warning btn-sm">Sửa</button>
-        <button onclick="deleteAsset(${i})" class="btn btn-danger btn-sm">Xóa</button>
-      </td>`;
-    body.appendChild(row);
-  });
-}
-
-function editAsset(i) {
-  const a = assets[i];
-  document.getElementById('tenTaiSan').value = a.ten;
-  document.getElementById('maTaiSan').value = a.ma;
-  document.getElementById('soLuong').value = a.sl;
-  document.getElementById('dongia').value = a.dg;
-  document.getElementById('thanhtien').value = a.tt;
-  document.getElementById('ngaynhap').value = a.ngaynhap;
-  document.getElementById('phongBan').value = a.pb;
-  document.getElementById('editIndex').value = i;
-  document.getElementById('submitBtn').textContent = 'Cập Nhật';
-}
-
-function deleteAsset(i) {
-  if (confirm("Bạn có chắc muốn xóa không?")) {
-    assets.splice(i, 1);
-    renderTable();
+  // Tải danh sách khoa phòng
+  function taiKhoaPhong() {
+    onValue(ref(db, "phongbans"), (snap) => {
+      const data = snap.val();
+      const selectIds = ["khoaNhap", "khoXuat", "khoNhap", "xoaPhongSelect"];
+      selectIds.forEach(id => {
+		  
+		  if (document.getElementById("locKhoaNhap")) {
+  const locKhoa = document.getElementById("locKhoaNhap");
+  locKhoa.innerHTML = `<option value="">-- Chọn Khoa phòng --</option>`;
+  for (let key in data) {
+    locKhoa.innerHTML += `<option>${data[key]}</option>`;
   }
 }
 
-document.getElementById('searchInput').addEventListener('input', renderTable);
-document.getElementById('filterPhongBan').addEventListener('change', renderTable);
-
-// Form xuất kho
-document.getElementById("exportForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const ma = document.getElementById("xuat_maTaiSan").value;
-  const sl = Number(document.getElementById("xuat_soLuong").value);
-  const ngay = document.getElementById("xuat_ngay").value;
-  const khoXuat = document.getElementById("xuat_khoXuat").value;
-  const khoNhap = document.getElementById("xuat_khoNhap").value;
-
-  if (khoXuat === khoNhap) {
-    alert("Kho xuất và kho nhập không được trùng nhau!");
-    return;
-  }
-
-  const kho = assets.find(a => a.ma === ma && a.pb === khoXuat);
-  if (!kho || kho.sl < sl) {
-    alert("Không đủ tài sản trong kho xuất!");
-    return;
-  }
-
-  kho.sl -= sl;
-  kho.tt = kho.sl * kho.dg;
-
-  let target = assets.find(a => a.ma === ma && a.pb === khoNhap);
-  if (target) {
-    target.sl += sl;
-    target.tt = target.sl * target.dg;
-  } else {
-    assets.push({
-      ten: kho.ten,
-      ma: kho.ma,
-      sl: sl,
-      dg: kho.dg,
-      tt: sl * kho.dg,
-      ngaynhap: ngay,
-      pb: khoNhap
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        sel.innerHTML = `<option disabled selected>-- Chọn Khoa phòng --</option>`;
+        for (let key in data) {
+          sel.innerHTML += `<option>${data[key]}</option>`;
+        }
+      });
     });
   }
+  taiKhoaPhong();
 
-  exportList.push({ ma, sl, ngay, khoXuat, khoNhap });
-  renderTable();
-  renderExportTable();
-  this.reset();
-});
+  // Thêm khoa
+  btnThemKhoa.onclick = () => {
+    const val = tenKhoaPhong.value.trim();
+    if (!val) return alert("Nhập tên khoa");
+    const newRef = push(ref(db, "phongbans"));
+    set(newRef, val);
+    tenKhoaPhong.value = "";
+  };
 
-function renderExportTable() {
-  const body = document.getElementById("exportTableBody");
-  body.innerHTML = "";
-  exportList.forEach((item, i) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${item.ma}</td>
-      <td>${item.sl}</td>
-      <td>${formatDate(item.ngay)}</td>
-      <td>${item.khoXuat}</td>
-      <td>${item.khoNhap}</td>
-      <td>
-        <button onclick="deleteExport(${i})" class="btn btn-danger btn-sm">Xóa</button>
-      </td>`;
-    body.appendChild(row);
-  });
-}
+  // Xóa khoa
+  btnXoaKhoa.onclick = () => {
+    const chon = xoaPhongSelect.value;
+    if (!chon) return alert("Chọn khoa phòng để xóa");
 
-function deleteExport(i) {
-  if (confirm("Bạn có chắc muốn xóa xuất kho này không?")) {
-    exportList.splice(i, 1);
-    renderExportTable();
-  }
-}
+    get(ref(db, "phongbans")).then((snap) => {
+      const data = snap.val();
+      for (let key in data) {
+        if (data[key] === chon) {
+          remove(ref(db, `phongbans/${key}`));
+          alert("Đã xóa khoa phòng");
+          break;
+        }
+      }
+    });
+  };
 
-function exportPhieuXuatKhoToExcel() {
-  const data = exportList.map((item, index) => ({
-    STT: index + 1,
-    "Mã tài sản": item.ma,
-    "Số lượng xuất": item.sl,
-    "Ngày xuất": formatDate(item.ngay),
-    "Kho xuất": item.khoXuat,
-    "Kho nhập": item.khoNhap
-  }));
+  // Thành tiền tự động
+  soLuong.oninput = donGia.oninput = () => {
+    const sl = +soLuong.value || 0;
+    const dg = +donGia.value || 0;
+    thanhTien.value = sl * dg;
+  };
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "PhieuXuatKho");
-  XLSX.writeFile(workbook, "phieu_xuat_kho.xlsx");
-}
+  // Thêm tài sản
+  btnThemTaiSan.onclick = () => {
+    const ten = tenTaiSan.value.trim();
+    const ma = maTaiSan.value.trim();
+    const sl = +soLuong.value;
+    const dg = +donGia.value;
+    const tt = sl * dg;
+    const ngay = ngayNhap.value;
+    const khoa = khoaNhap.value;
+    if (!ten || !ma || !sl || !dg || !ngay || !khoa) return alert("Nhập đủ thông tin");
 
+    const newRef = push(ref(db, "taisans"));
+    set(newRef, { ten, ma, sl, dg, tt, ngay, khoa });
 
+    ["tenTaiSan", "maTaiSan", "soLuong", "donGia", "thanhTien", "ngayNhap"].forEach(id => document.getElementById(id).value = "");
+  };
 
-let phongBanList = [
-  "Kho", "Khoa khám bệnh", "Khoa Nội", "Khoa Ngoại", "Khoa Sản", "Khoa Nhi",
-  "Khoa cấp cứu", "Khoa dân số", "Khoa dược", "Khoa kiểm soát bệnh tật",
-  "Khoa an toàn thực phẩm", "Khoa y học cổ truyền", "Khoa Xét nghiệm",
-  "Khoa y tế công cộng", "Phòng điều dưỡng", "Phòng Hành chính",
-  "Phòng kế toán", "Phòng P.giám đốc BS.Hạnh", "Phòng P.giám đốc BS.Hoằng",
-  "Phòng Giám đốc", "Phòng KHNV"
-];
-
-function updatePhongBanDropdowns() {
-  const selects = ['phongBan', 'filterPhongBan', 'xuat_khoXuat', 'xuat_khoNhap', 'removePhongBanSelect'];
-  selects.forEach(id => {
-    const select = document.getElementById(id);
-    if (select) {
-      select.innerHTML = `<option value="">-- Chọn Khoa phòng --</option>`;
-      phongBanList.forEach(pb => {
-        const opt = document.createElement("option");
-        opt.value = pb;
-        opt.textContent = pb;
-        select.appendChild(opt);
-      });
+  // Hiển thị tài sản
+  onValue(ref(db, "taisans"), (snap) => {
+    const data = snap.val();
+    const tb = document.getElementById("tableKhoNhap");
+    tb.innerHTML = "";
+    let stt = 1;
+    for (let key in data) {
+      const { ten, ma, sl, dg, tt, ngay, khoa } = data[key];
+      tb.innerHTML += `
+        <tr><td>${stt++}</td><td>${ten}</td><td>${ma}</td><td>${sl}</td><td>${dg}</td><td>${tt}</td><td>${dinhDangNgay(ngay)}</td><td>${khoa}</td>
+        <td><button class="btn btn-warning btn-sm" onclick="suaTaiSan('${key}')">Sửa</button>
+        <button class="btn btn-danger btn-sm" onclick="xoaTaiSan('${key}')">Xóa</button></td></tr>
+      `;
     }
   });
+
+  // Sửa tài sản
+  window.suaTaiSan = (key) => {
+    get(child(ref(db), `taisans/${key}`)).then((snap) => {
+      const ts = snap.val();
+      tenTaiSan.value = ts.ten;
+      maTaiSan.value = ts.ma;
+      soLuong.value = ts.sl;
+      donGia.value = ts.dg;
+      thanhTien.value = ts.tt;
+      ngayNhap.value = ts.ngay;
+      khoaNhap.value = ts.khoa;
+      btnThemTaiSan.style.display = "none";
+      if (!document.getElementById("btnCapNhat")) {
+        const btn = document.createElement("button");
+        btn.id = "btnCapNhat";
+        btn.className = "btn btn-success w-100 mt-2";
+        btn.innerText = "Cập nhật";
+        btn.onclick = () => {
+          const ten = tenTaiSan.value, ma = maTaiSan.value, sl = +soLuong.value, dg = +donGia.value, ngay = ngayNhap.value, khoa = khoaNhap.value;
+          update(ref(db, `taisans/${key}`), { ten, ma, sl, dg, tt: sl * dg, ngay, khoa });
+          btn.remove(); btnThemTaiSan.style.display = "block";
+          ["tenTaiSan", "maTaiSan", "soLuong", "donGia", "thanhTien", "ngayNhap"].forEach(id => document.getElementById(id).value = "");
+        };
+        btnThemTaiSan.parentNode.appendChild(btn);
+      }
+    });
+  };
+
+  // Xóa tài sản
+  window.xoaTaiSan = (key) => {
+    if (confirm("Xóa tài sản này?")) remove(ref(db, `taisans/${key}`));
+  };
+
+  // Xuất kho
+  btnXuatKho.onclick = () => {
+  const ma = maXuat.value.trim(), slXuatVal = +slXuat.value, ngay = ngayXuat.value, khoX = khoXuat.value, khoN = khoNhap.value;
+  if (!ma || !slXuatVal || !ngay || !khoX || !khoN) return alert("Nhập đủ thông tin");
+
+  get(ref(db, "taisans")).then((snap) => {
+    const data = snap.val();
+    let found = false;
+    for (let key in data) {
+      const ts = data[key];
+      if (ts.ma === ma && ts.khoa === khoX) {
+        if (ts.sl < slXuatVal) return alert("Không đủ số lượng");
+        update(ref(db, `taisans/${key}`), {
+          sl: ts.sl - slXuatVal,
+          tt: (ts.sl - slXuatVal) * ts.dg
+        });
+        const newRef = push(ref(db, "xuatkho"));
+        set(newRef, { ma, slXuat: slXuatVal, ngay, khoXuat: khoX, khoNhap: khoN });
+
+        // Kiểm tra tồn tại ở kho nhập (tên + mã)
+        let daCong = false;
+        for (let key2 in data) {
+          const ts2 = data[key2];
+          if (ts2.ma === ma && ts2.ten === ts.ten && ts2.khoa === khoN) {
+            const slMoi = ts2.sl + slXuatVal;
+            const ttMoi = slMoi * ts2.dg;
+            update(ref(db, `taisans/${key2}`), { sl: slMoi, tt: ttMoi });
+            daCong = true;
+            break;
+          }
+        }
+
+        if (!daCong) {
+          const newNhapRef = push(ref(db, "taisans"));
+          set(newNhapRef, {
+            ten: ts.ten,
+            ma: ts.ma,
+            sl: slXuatVal,
+            dg: ts.dg,
+            tt: slXuatVal * ts.dg,
+            ngay,
+            khoa: khoN
+          });
+        }
+
+        found = true;
+        break;
+      }
+    }
+    if (!found) alert("Không tìm thấy tài sản phù hợp");
+  });
+};
+
+
+  // Hiển thị xuất kho
+  onValue(ref(db, "xuatkho"), (snap) => {
+    const data = snap.val();
+    const tb = document.getElementById("tableXuatKho");
+    tb.innerHTML = "";
+    let stt = 1;
+    for (let key in data) {
+      const { ma, slXuat, ngay, khoXuat, khoNhap } = data[key];
+      tb.innerHTML += `<tr><td>${stt++}</td><td>${ma}</td><td>${slXuat}</td><td>${dinhDangNgay(ngay)}</td><td>${khoXuat}</td><td>${khoNhap}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="xoaXuatKho('${key}')">Xóa</button></td></tr>`;
+    }
+  });
+
+  window.xoaXuatKho = (key) => {
+    if (confirm("Xóa phiếu xuất này?")) remove(ref(db, `xuatkho/${key}`));
+  };
+
+  // Lọc & xuất Excel
+  function parseDate(str) {
+    const [y, m, d] = str.split("-");
+    return new Date(+y, m - 1, +d);
+  }
+
+  window.locVaXuatExcelNhap = () => {
+    const tu = parseDate(tuNgayNhap.value), den = parseDate(denNgayNhap.value);
+    get(ref(db, "taisans")).then((snap) => {
+      const data = snap.val();
+      const rows = [["Tên", "Mã", "SL", "Đơn giá", "Thành tiền", "Ngày", "Khoa"]];
+      for (let key in data) {
+        const ts = data[key];
+        const ngay = parseDate(ts.ngay);
+        if (ngay >= tu && ngay <= den) rows.push([ts.ten, ts.ma, ts.sl, ts.dg, ts.tt, dinhDangNgay(ts.ngay), ts.khoa]);
+      }
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "KhoNhap");
+      XLSX.writeFile(wb, `Phieu_Nhap_${tuNgayNhap.value}_den_${denNgayNhap.value}.xlsx`);
+    });
+  };
+
+  window.locVaXuatExcelXuat = () => {
+    const tu = parseDate(tuNgayXuat.value), den = parseDate(denNgayXuat.value);
+    get(ref(db, "xuatkho")).then((snap) => {
+      const data = snap.val();
+      const rows = [["Mã", "SL xuất", "Ngày", "Kho xuất", "Kho nhập"]];
+      for (let key in data) {
+        const x = data[key];
+        const ngay = parseDate(x.ngay);
+        if (ngay >= tu && ngay <= den) rows.push([x.ma, x.slXuat, dinhDangNgay(x.ngay), x.khoXuat, x.khoNhap]);
+      }
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "KhoXuat");
+      XLSX.writeFile(wb, `Phieu_Xuat_${tuNgayXuat.value}_den_${denNgayXuat.value}.xlsx`);
+    });
+  };
+  
+  function hienThiTaiSan(data) {
+  const keyword = document.getElementById("timTenTaiSan")?.value.toLowerCase() || "";
+  const khoaLoc = document.getElementById("locKhoaNhap")?.value || "";
+  const tb = document.getElementById("tableKhoNhap");
+  tb.innerHTML = "";
+  let stt = 1;
+  for (let key in data) {
+    const { ten, ma, sl, dg, tt, ngay, khoa } = data[key];
+    const matchTen = ten.toLowerCase().includes(keyword);
+    const matchKhoa = khoaLoc === "" || khoa === khoaLoc;
+    if (matchTen && matchKhoa) {
+      tb.innerHTML += `<tr><td>${stt++}</td><td>${ten}</td><td>${ma}</td><td>${sl}</td><td>${dg}</td><td>${tt}</td><td>${dinhDangNgay(ngay)}</td><td>${khoa}</td>
+      <td><button class='btn btn-warning btn-sm' onclick="suaTaiSan('${key}')">Sửa</button>
+      <button class='btn btn-danger btn-sm' onclick="xoaTaiSan('${key}')">Xóa</button></td></tr>`;
+    }
+  }
 }
 
-function addPhongBan() {
-  const newPB = document.getElementById("newPhongBan").value.trim();
-  if (newPB === "") {
-    alert("Vui lòng nhập tên khoa phòng.");
-    return;
-  }
-  if (phongBanList.includes(newPB)) {
-    alert("Khoa phòng đã tồn tại.");
-    return;
-  }
-  phongBanList.push(newPB);
-  updatePhongBanDropdowns();
-  document.getElementById("newPhongBan").value = "";
-}
+onValue(ref(db, "taisans"), (snap) => {
+  const data = snap.val();
+  window._dataTaiSan = data;
+  hienThiTaiSan(data);
+});
 
-function removePhongBan() {
-  const selectedPB = document.getElementById("removePhongBanSelect").value;
-  if (!selectedPB) {
-    alert("Chọn khoa phòng cần xóa.");
-    return;
-  }
-  phongBanList = phongBanList.filter(pb => pb !== selectedPB);
-  updatePhongBanDropdowns();
-}
+document.getElementById("timTenTaiSan")?.addEventListener("input", () => {
+  hienThiTaiSan(window._dataTaiSan || {});
+});
 
-// Gọi sau khi tải trang
-updatePhongBanDropdowns();
+document.getElementById("locKhoaNhap")?.addEventListener("change", () => {
+  hienThiTaiSan(window._dataTaiSan || {});
+});
 
 </script>
-
-
-<div id="Bottom" style="color: #007bff;font-size: 21px; font-weight: bold;">
-    <br/>
-    <center>
-      HỆ THỐNG QUẢN LÝ TÀI SẢN TẠI TRUNG TÂM Y TẾ KHU VỰC LẤP VÒ<br />
-      THIẾT KẾ BỞI: TỔ TIN HỌC - PHÒNG KẾ HOẠCH NGHIỆP VỤ <br />
-    </center>
-  </div>
 </body>
 </html>
