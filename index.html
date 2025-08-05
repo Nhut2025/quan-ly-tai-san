@@ -74,8 +74,8 @@
     <div class="col-md-2"><input id="maXuat" class="form-control" placeholder="Mã tài sản"></div>
     <div class="col-md-2"><input id="slXuat" type="number" class="form-control" placeholder="Số lượng xuất"></div>
     <div class="col-md-2"><input id="ngayXuat" type="date" class="form-control"></div>
-    <div class="col-md-3"><select id="khoXuat" class="form-select"></select></div>
-    <div class="col-md-3"><select id="khoNhap" class="form-select"></select></div>
+    <div class="col-md-3"><select id="khoXuat" class="form-select"></select><option value=""> -- Chọn Khoa xuất --</option></div>
+    <div class="col-md-3"><select id="khoNhap" class="form-select"></select><option value=""> -- Chọn Khoa nhập --</option></div>
   </div>
   <div class="row mb-3"><div class="col-md-3"><button id="btnXuatKho" class="btn btn-danger w-100">Xuất kho</button></div></div>
 
@@ -396,3 +396,4 @@ document.getElementById("locKhoaNhap")?.addEventListener("change", () => {
 	
 </body>
 </html>
+
